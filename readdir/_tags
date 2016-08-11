@@ -1,0 +1,2 @@
+<*.*>: package(unix), package(unix-dirent.lwt), package(osx-attr.lwt), package(async_unix), package(mtime.os), package(async)
+<*.*>: thread
