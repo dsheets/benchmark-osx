@@ -5,16 +5,19 @@
 #include <mach/mach_time.h>
 #include <dirent.h>
 
-int main() {
+int main(int argc, char * argv[]) {
   DIR * dh;
   struct dirent * dirent;
-  int sum;
+  int sum, trials;
   uint64_t now, later;
   mach_timebase_info_data_t scale;
 
+  if (argc > 1) trials = atoi(argv[1]);
+  else trials = 10;
+
   mach_timebase_info(&scale);
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < trials; i++) {
     sum = 0;
 
     now = mach_absolute_time();

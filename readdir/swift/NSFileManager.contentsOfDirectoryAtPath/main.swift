@@ -20,6 +20,12 @@ func run() -> Double {
     return timer.milliseconds
 }
 
-for _ in 0..<10 {
+var trials = 10
+if Process.arguments.count > 1 {
+    if let trial_count = Int(Process.arguments[1]) {
+        trials = trial_count
+    }
+}
+for _ in 0..<trials {
     print(run())
 }

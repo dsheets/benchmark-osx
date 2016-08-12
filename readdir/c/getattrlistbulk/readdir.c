@@ -112,8 +112,13 @@ double list(const char * path) {
   return ((later - now) * scale.numer) / scale.denom * 1e-6;
 }
 
-int main() {
-  for (int i = 0; i < 10; i++) {
+int main(int argc, char * argv[]) {
+  int trials;
+
+  if (argc > 1) trials = atoi(argv[1]);
+  else trials = 10;
+
+  for (int i = 0; i < trials; i++) {
     printf("%f\n", list("../../bigdir"));
   }
 
