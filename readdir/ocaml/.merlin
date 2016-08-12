@@ -1,0 +1,22 @@
+PKG unix
+PKG unix-dirent
+PKG unix-dirent.lwt
+PKG osx-attr
+PKG osx-attr.lwt
+PKG async
+PKG async_unix
+PKG mtime.os
+
+S Sys.readdir
+S Unix.readdir
+S Dirent_unix.readdir
+S Osx_attr.getbulk
+S Osx_attr.getlistbulk
+S Lwt_unix.readdir
+S Dirent_unix_lwt.readdir
+S Osx_attr_lwt.getbulk
+S Osx_attr_lwt.getlistbulk
+S Async_sys.readdir
+S Async_unix.readdir
+
+B _build/**

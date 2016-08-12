@@ -1,0 +1,4 @@
+<*.*>: package(mtime.os)
+<*_lwt.*>: package(lwt.unix)
+<*_async.*>: package(async)
+<*.*>: thread
