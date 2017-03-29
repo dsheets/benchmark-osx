@@ -6,6 +6,6 @@ module Unistd_unix_lwt_threaded = struct
 end
 
 open Benchmark_osx_pwrite
-module Benchmark = Make (Use_lwt) (Unistd_unix_lwt_threaded)
+module Benchmark = Make (Use_lwt) (Ctypes_buffer) (Unistd_unix_lwt_threaded)
 
 let () = Benchmark.time ()
