@@ -71,8 +71,18 @@ module Make
         IO.join threads >>= fun () ->
         let elapsed = Mtime.count start in
 
-        let elapsed = Mtime.to_us elapsed /. (float_of_int repetitions) in
-        Printf.printf "%9.02f µs\n" elapsed;
+        let per_byte =
+          Mtime.to_ns elapsed
+          /. (float_of_int buffer_size)
+          /. (float_of_int repetitions)
+          /. (float_of_int concurrency)
+        in
+        let per_second =
+          (float_of_int (buffer_size * repetitions * concurrency))
+          /. (Mtime.to_s elapsed)
+          /. 1024. /. 1024.
+        in
+        Printf.printf "%9.02f ns/B (%.0f MB/sec)\n" per_byte per_second;
 
         IO.return ()
       end
