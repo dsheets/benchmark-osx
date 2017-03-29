@@ -3,6 +3,7 @@
 SUBDIRECTORIES := $(shell ls -d */)
 
 all:
+	mkdir -p scratch_output
 	for DIR in $(SUBDIRECTORIES) ; do $(MAKE) -C $$DIR all ; done
 
 run:
@@ -10,4 +11,4 @@ run:
 
 clean:
 	for DIR in $(SUBDIRECTORIES) ; do $(MAKE) -C $$DIR clean ; done
-	rm -f scratch_output
+	rm -rf scratch_output
