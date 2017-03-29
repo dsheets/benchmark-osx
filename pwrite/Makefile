@@ -1,6 +1,6 @@
 .PHONY: all run clean
 
-SUBDIRECTORIES := $(shell ls -d */)
+SUBDIRECTORIES := $(shell ls -d */ | grep -v scratch)
 
 all:
 	mkdir -p scratch_output
