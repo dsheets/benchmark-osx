@@ -1,0 +1,4 @@
+<*>: package(unix-unistd.lwt)
+<*>: package(lwt.preemptive)
+<*>: package(mtime.os)
+<*>: thread

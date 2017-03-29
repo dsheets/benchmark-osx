@@ -1,0 +1,12 @@
+.PHONY: all run clean
+
+all:
+	ocamlbuild -use-ocamlfind pwrite.native
+	mv pwrite.native pwrite
+
+run:
+	@echo `pwd`
+	@./pwrite
+
+clean:
+	ocamlbuild -clean
