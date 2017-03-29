@@ -4,8 +4,9 @@ end
 
 module type PWRITE = sig
   type 'a io
+  type buffer
 
-  val pwrite : Unix.file_descr -> unit Ctypes.ptr -> int -> int64 -> int io
+  val pwrite : Unix.file_descr -> buffer -> int -> int64 -> int io
 end
 
 module type IO = sig
@@ -18,8 +19,19 @@ module type IO = sig
   val run : 'a t -> 'a
 end
 
-module Make (IO : IO) (Pwrite : PWRITE with type 'a io := 'a IO.t) : BENCHMARK =
-struct
+module type BUFFER = sig
+  type t
+
+  val allocate : int -> t
+end
+
+module Make
+  (IO : IO)
+  (Buffer : BUFFER)
+  (Pwrite : PWRITE
+    with type 'a io := 'a IO.t
+    and type buffer := Buffer.t) : BENCHMARK = struct
+
   let time () =
     let buffer_size, repetitions =
       if Array.length Sys.argv > 2
@@ -31,7 +43,7 @@ struct
 
     (* Closed on process exit. *)
     let fd = Unix.(openfile file [O_WRONLY; O_CREAT; O_TRUNC] 0o644) in
-    let buffer = Ctypes.(allocate_n char ~count:buffer_size |> to_voidp) in
+    let buffer = Buffer.allocate buffer_size in
 
     IO.init ();
     IO.run
@@ -75,4 +87,11 @@ module Use_lwt : IO with type 'a t = 'a Lwt.t = struct
 
   let init () = Lwt_engine.(set (new Lwt_engine.Versioned.libev_2 ()))
   let run = Lwt_main.run
+end
+
+module Ctypes_buffer : BUFFER with type t = unit Ctypes.ptr = struct
+  type t = unit Ctypes.ptr
+
+  let allocate buffer_size =
+    Ctypes.(allocate_n char ~count:buffer_size |> to_voidp)
 end

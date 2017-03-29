@@ -61,6 +61,7 @@ module Unistd_unix_with_std_threads = struct
 end
 
 open Benchmark_osx_pwrite
-module Benchmark = Make (Use_blocking_io) (Unistd_unix_with_std_threads)
+module Benchmark =
+  Make (Use_blocking_io) (Ctypes_buffer) (Unistd_unix_with_std_threads)
 
 let () = Benchmark.time ()
