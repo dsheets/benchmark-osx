@@ -43,7 +43,10 @@ module Make
         (Printf.sprintf "../../scratch_output/thread-%i")
     in
 
-    (* Closed on process exit. *)
+    (* Closed on process exit.
+
+       In particular, the time needed to close the fds is not counted in the
+       performance measurement. *)
     let fds =
       Array.init concurrency (fun n ->
         Unix.(openfile files.(n) [O_WRONLY; O_CREAT; O_TRUNC] 0o644))
