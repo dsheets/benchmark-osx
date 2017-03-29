@@ -32,13 +32,7 @@ module Make
     with type 'a io := 'a IO.t
     and type buffer := Buffer.t) : BENCHMARK = struct
 
-  let time () =
-    let buffer_size, repetitions =
-      if Array.length Sys.argv > 2
-      then int_of_string (Sys.argv.(1)), int_of_string (Sys.argv.(2))
-      else 4096, 65536
-    in
-
+  let time_configured buffer_size repetitions =
     let file = "../../scratch_output" in
 
     (* Closed on process exit. *)
@@ -67,6 +61,28 @@ module Make
         Printf.printf "%9.02f µs\n" elapsed;
         IO.return ()
       end
+
+  let time () =
+    let open Cmdliner in
+
+    let buffer_size =
+      Arg.(value & opt int 4096 &
+        info ["buffer-size"] ~docv:"BYTES"
+          ~env:(env_var "BENCHMARK_BUFFER_SIZE"))
+    in
+
+    let repetitions =
+      Arg.(value & opt int 65536 &
+        info ["repetitions"] ~docv:"N"
+          ~env:(env_var "BENCHMARK_REPETITIONS"))
+    in
+
+    let command =
+      Term.(const time_configured $ buffer_size $ repetitions),
+      Term.info "pwrite"
+    in
+
+    Term.(exit @@ eval command)
 end
 
 module Use_blocking_io : IO with type 'a t = 'a = struct
