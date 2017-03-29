@@ -33,7 +33,11 @@ module Make
     with type 'a io := 'a IO.t
     and type buffer := Buffer.t) : BENCHMARK = struct
 
-  let time_configured buffer_size repetitions concurrency =
+  type access_pattern =
+    | Sequential
+    | In_place
+
+  let time_configured buffer_size repetitions concurrency access_pattern =
     let files =
       Array.init concurrency
         (Printf.sprintf "../../scratch_output/thread-%i")
@@ -51,14 +55,22 @@ module Make
     let thread n =
       let open IO in
       let rec repeat = function
-        | n' when n' <= 0 -> return ()
-        | n' ->
-          Pwrite.pwrite fds.(n) buffers.(n) buffer_size 0L
+        | repetition when repetition >= repetitions -> return ()
+        | repetition ->
+          let offset =
+            match access_pattern with
+            | Sequential ->
+                Int64.(rem
+                  (mul (of_int buffer_size) (of_int repetition))
+                  (of_int (16 * 1024 * 1024)))
+            | In_place -> 0L
+          in
+          Pwrite.pwrite fds.(n) buffers.(n) buffer_size offset
           >>= fun written ->
           assert (written = buffer_size);
-          repeat (n' - 1)
+          repeat (repetition + 1)
       in
-      repeat repetitions
+      repeat 0
     in
 
     IO.init ();
@@ -108,8 +120,16 @@ module Make
           ~env:(env_var "BENCHMARK_CONCURRENCY"))
     in
 
+    let access_pattern =
+      Arg.(value &
+        opt (enum ["sequential", Sequential; "in-place", In_place]) Sequential &
+        info ["access-pattern"]
+          ~env:(env_var "BENCHMARK_ACCESS_PATTERN"))
+    in
+
     let command =
-      Term.(const time_configured $ buffer_size $ repetitions $ concurrency),
+      Term.(const time_configured
+        $ buffer_size $ repetitions $ concurrency $ access_pattern),
       Term.info "pwrite"
     in
 
