@@ -157,7 +157,9 @@ module Use_lwt : IO with type 'a t = 'a Lwt.t = struct
   let (>>=) = Lwt.bind
   let join = Lwt.join
 
-  let init () = Lwt_engine.(set (new Lwt_engine.Versioned.libev_2 ()))
+  let init () =
+    Lwt_engine.(set
+      (new Lwt_engine.Versioned.libev_2 ~backend:Ev_backend.kqueue ()))
   let run = Lwt_main.run
 end
 
