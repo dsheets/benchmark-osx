@@ -9,4 +9,5 @@ covering the system functionality as accessed via those techniques.
 
 Benchmark suites include:
 
- - [readdir](readdir): directory listings
+ - [readdir](readdir): directory listings  
+ - [pwrite](pwrite): writing to a file descriptor at an offset  
