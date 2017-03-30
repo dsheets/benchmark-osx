@@ -1,5 +1,7 @@
-(* This keeps a "thread pool" of one thread, and runs pwrite calls in that
-   thread. *)
+open Benchmark_osx_pwrite
+
+(* This keeps a thread pool of one thread per file descriptor, and runs pwrite
+   calls in those threads. *)
 module Unistd_unix_with_std_threads = struct
   (* Cells for communication between the main thread and worker thread. *)
   type 'a cell =
@@ -37,31 +39,37 @@ module Unistd_unix_with_std_threads = struct
     {fd     : Unix.file_descr;
      buffer : unit Ctypes.ptr;
      count  : int;
-     offset : int64}
+     offset : int64;
+     k      : int -> unit}
 
-  let arguments_cell = cell ()
-  let result_cell = cell ()
+  let arguments_cells : (Unix.file_descr, arguments cell) Hashtbl.t =
+    Hashtbl.create 16
 
-  (* Worker thread. *)
-  let rec run_pwrite () =
+  (* Worker threads. *)
+  let rec run_pwrite arguments_cell =
     let arguments = wait arguments_cell in
     let written =
       Unistd_unix.pwrite
         arguments.fd arguments.buffer arguments.count arguments.offset
     in
-    notify result_cell written;
-    run_pwrite ()
-
-  let (_ : Thread.t) = Thread.create run_pwrite ()
+    Use_threaded_cps.notify (fun () -> arguments.k written);
+    run_pwrite arguments_cell
 
   (* Called repeatedly in the main thread. *)
-  let pwrite fd buffer count offset =
-    notify arguments_cell {fd; buffer; count; offset};
-    wait result_cell
+  let pwrite fd buffer count offset k =
+    let arguments_cell =
+      match Hashtbl.find arguments_cells fd with
+      | c -> c
+      | exception Not_found ->
+        let arguments_cell = cell () in
+        ignore (Thread.create run_pwrite arguments_cell);
+        Hashtbl.add arguments_cells fd arguments_cell;
+        arguments_cell
+    in
+    notify arguments_cell {fd; buffer; count; offset; k = (fun i -> k i)};
 end
 
-open Benchmark_osx_pwrite
 module Benchmark =
-  Make (Use_blocking_io) (Ctypes_buffer) (Unistd_unix_with_std_threads)
+  Make (Use_threaded_cps) (Ctypes_buffer) (Unistd_unix_with_std_threads)
 
 let () = Benchmark.time ()

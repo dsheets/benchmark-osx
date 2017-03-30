@@ -2,4 +2,5 @@
 <*>: package(lwt.preemptive)
 <*>: package(core)
 <*>: package(mtime.os)
+<*>: package(cmdliner)
 <*>: thread
